@@ -1,0 +1,179 @@
+---
+title: "Assessment 4 Part 2"
+author: "Sudip Adhikari"
+date: "2025-10-07"
+output: html_document
+---
+```{r}
+##Download the whole set of coding DNA sequences for E. coli and your organism of interest. How many coding sequences are present in these organisms? Present this in the form of a table. Describe any differences between the two organisms. 
+
+library("R.utils")
+
+URL="http://ftp.ensemblgenomes.org/pub/bacteria/release-53/fasta/bacteria_0_collection/escherichia_coli_str_k_12_substr_mg1655_gca_000005845/cds/Escherichia_coli_str_k_12_substr_mg1655_gca_000005845.ASM584v2.cds.all.fa.gz"
+download.file(URL,destfile="Escherichia_coli_str_k_12_substr_mg1655_gca_000005845.ASM584v2.cds.all.fa.gz")
+gunzip("Escherichia_coli_str_k_12_substr_mg1655_gca_000005845.ASM584v2.cds.all.fa.gz")
+list.files() 
+library("seqinr")
+
+##Download the whole set of coding DNA sequences for E. coli and your organism of interest. How many coding sequences are present in these organisms? Present this in the form of a table. Describe any differences between the two organisms. 
+
+library("R.utils")
+URL="https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-62/fasta/bacteria_121_collection/streptococcus_thermophilus_cag_236_gca_000434755/cds/Streptococcus_thermophilus_cag_236_gca_000434755.MGS236.cds.all.fa.gz"
+
+download.file(URL,destfile="Streptococcus_thermophilus_cag_236_gca_000434755.MGS236.cds.all.fa.gz")
+gunzip("Streptococcus_thermophilus_cag_236_gca_000434755.MGS236.cds.all.fa.gz")
+list.files()
+library("seqinr")
+
+cds_ecoli <- seqinr::read.fasta("Escherichia_coli_str_k_12_substr_mg1655_gca_000005845.ASM584v2.cds.all.fa")
+cds_Streptococcus <- seqinr::read.fasta("Streptococcus_thermophilus_cag_236_gca_000434755.MGS236.cds.all.fa")
+length_Streptococcus <- length(cds_Streptococcus)
+length_ecoli <- length(cds_ecoli)
+
+DNA_length <- data.frame(
+  Organism = c("E. coli", "Streptococcus thermophilus"),
+  DNA_Length = c(length_ecoli, length_Streptococcus)
+)
+print(DNA_length)
+
+
+
+
+{r}
+##How much coding DNA is there in total for these two organisms? Present this in the form of a table. Describe any differences between the two organisms.
+
+ecoli_total <- length(unlist(cds_ecoli))
+streptococcus_total <- length(unlist(cds_Streptococcus))
+
+Coding_DNA <- data.frame(
+  Organism = c("E. coli", "Streptococcus thermophilus"),
+  Total_Coding_DNA_Length = c(ecoli_total, streptococcus_total)
+)
+print(Coding_DNA)
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+{r}
+
+##Calculate the length of all coding sequences in these two organisms. Make a boxplot of coding sequence length in these organisms. What is the mean and median coding sequence length of these two organisms? Describe any differences between the two organisms.
+len_ecoli <- as.numeric(summary(cds_ecoli)[,1])
+len_streptococcus <- as.numeric(summary(cds_Streptococcus)[,1])
+
+len_ecoli <- as.numeric(summary(cds_ecoli)[,1])
+sum(len_ecoli)
+mean(len_ecoli)
+median(len_ecoli)
+boxplot(len_ecoli,ylab="sequence length (bp) for E Coli")
+
+len_streptococcus <- as.numeric(summary(cds_Streptococcus)[,1])
+sum(len_streptococcus)
+mean(len_streptococcus)
+median(len_streptococcus)
+boxplot(len_streptococcus,ylab="sequence length (bp) for streptococcus")
+
+
+
+Note that the echo = FALSE parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+{r}
+##Calculate the frequency of DNA bases in the total coding sequences for both organisms. Perform the same calculation for the total protein sequence. Create bar plots for nucleotide and amino acid frequency. Describe any differences between the two organisms.
+
+dna_composition_ecoli <- count(unlist(cds_ecoli),1)
+dna_composition_streptococcus <- count(unlist(cds_Streptococcus),1)
+
+barplot(dna_composition_ecoli,xlab="nucleotides",ylab="frequency", main="E coli CDS composition")
+barplot(dna_composition_streptococcus,xlab="nucleotides",ylab="frequency", main="Streptococcus CDS composition")
+
+
+prot_streptococcus <- lapply(cds_Streptococcus, translate)
+prot_ecoli <- lapply(cds_ecoli, translate)
+
+aa <- unique(prot_ecoli[[2]])
+aa <- aa[aa != "*"]
+length(aa)
+
+prot_count_ecoli <- count(unlist(prot_ecoli),wordsize=1,alphabet=aa)
+prot_count_streptococcus <-count(unlist(prot_streptococcus),wordsize=1,alphabet=aa)
+
+barplot(prot_count_ecoli,xlab="amino acids",ylab="frequency", main="E coli amino acid composition")
+barplot(prot_count_streptococcus,xlab="amino acids",ylab="frequency", main="Streptococcus amino acid composition")
+
+{r}
+##Create a codon usage table and quantify the codon usage bias among all coding sequences. Describe any differences between the two organisms with respect to their codon usage bias. Provide charts to support your observations.
+codon_streptococcus <- uco(unlist(cds_Streptococcus),index="rscu",as.data.frame=TRUE)
+
+codon_ecoli <- uco(unlist(cds_ecoli),index="rscu",as.data.frame=TRUE)
+
+
+sorted_ecoli <- codon_ecoli[order(codon_ecoli$RSCU),]
+top10codonsecoli <- head(sorted_ecoli, 10)
+print(top10codonsecoli)
+
+reverse_sorted_ecoli <- codon_ecoli[order(-codon_ecoli$RSCU),]
+top10codonsecolireverse <- head(reverse_sorted_ecoli, 10)
+print(top10codonsecolireverse)
+
+sorted_streptococcus <- codon_streptococcus[order(codon_streptococcus$RSCU),]
+top10codonsstreptococcus <- head(sorted_streptococcus, 10)
+print(top10codonsstreptococcus)
+
+reverse_sorted_streptococcus <- codon_streptococcus[order(-codon_streptococcus$RSCU),]
+top10codonsstreptococcusreverse <- head(reverse_sorted_streptococcus, 10)
+print(top10codonsstreptococcusreverse)
+
+
+barplot(top10codonsecoli$RSCU, names.arg = top10codonsecoli$codon , xlab ="codons",
+        ylab ="RSCU",
+        main ="Codon usage bias")
+ 
+barplot(top10codonsstreptococcus$RSCU, names.arg = top10codonsstreptococcus$codon , xlab ="codons",
+        ylab ="RSCU",
+        main ="Codon usage bias")
+
+barplot(top10codonsecolireverse$RSCU, names.arg = top10codonsecolireverse$codon , xlab ="codons",
+        ylab ="RSCU",
+        main ="Codon usage bias")
+ 
+barplot(top10codonsstreptococcusreverse$RSCU, names.arg = top10codonsstreptococcusreverse$codon , xlab ="codons",
+        ylab ="RSCU",
+        main ="Codon usage bias")
+
+```{r}
+##In the organism of interest, identify 10 protein sequence k-mers of length 3-5 which are the most over- and under-represented k-mers in your organism of interest. Are these k-mers also over- and under-represented in E. coli to a similar extent? Provide plots to support your observations. Why do you think these sequences are present at different levels in the genomes of these organisms?
+
+
+aa <- unique(prot_ecoli[[2]])
+aa <- aa[aa != "*"]
+length(aa)
+
+
+protsecoli <- unlist(prot_ecoli)
+
+mycounts_ecoli <- count(protsecoli,wordsize=3,alphabet=aa)
+
+str(mycounts_ecoli)
+
+head(mycounts_ecoli)
+
+
+prots_streptococcus <- unlist(prot_streptococcus)
+
+mycounts_streptococcus <- count(prots_streptococcus,wordsize=3,alphabet=aa)
+
+str(mycounts_streptococcus)
+
+head(mycounts_streptococcus)
+
+myfreq_streptococcus <- count(prots_streptococcus,wordsize=3,alphabet=aa,freq=TRUE)
+myfreqecoli <- count(protsecoli,wordsize=3,alphabet=aa,freq=TRUE)
+head(myfreq_streptococcus, 10)
+head(myfreqecoli, 10)
+
+
+
+```
+{r}

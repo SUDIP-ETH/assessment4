@@ -1,0 +1,85 @@
+---
+title: "Assessment 4"
+author: "Sudip Adhikari"
+date: "2025-10-07"
+output: html_document
+---
+```{r}
+##Read in the file, making the gene identifiers the row names. Show a table of values for the first six genes.
+library("R.utils")
+
+URL="https://raw.githubusercontent.com/ghazkha/Assessment4/refs/heads/main/gene_expression.tsv"
+download.file(URL,destfile="gene_expression.tsv")
+cds <- read.delim("gene_expression.tsv")
+head(cds)
+
+
+##Make a new column which is the mean of the other columns. Show a table of values for the first six genes.
+library("seqinr")
+
+rownames(cds) <- cds[,1]
+
+cds <- cds[,-1]
+
+cds$mean_column <- rowMeans(cds)
+
+head(cds)
+print(head)
+
+##List the 10 genes with the highest mean expression
+sorted <- cds[order(-cds$mean_column),]
+##Determine the number of genes with a mean <10
+low_mean <- cds[which(cds$mean_column < 10),]
+
+##Make a histogram plot of the mean values and include it into your report.
+hist(sorted$mean_column,xlab="Mean Expression",ylab="Frequency",main="Mean Gene Expression")
+```
+
+```{r}
+##Import this csv file into an R object. What are the column names?
+URL="https://raw.githubusercontent.com/ghazkha/Assessment4/refs/heads/main/growth_data.csv"
+download.file(URL,destfile="growth_data.csv")
+
+##Calculate the mean and standard deviation of tree circumference at the start and end of the study at both sites.
+
+growth <- read.csv("growth_data.csv")
+print(growth)
+
+
+Northeast <- growth[grep("northeast", growth$Site), ]
+Southwest <- growth[grep("southwest", growth$Site), ]
+
+Northeast_Mean_2005 <- mean(Northeast$Circumf_2005_cm)
+Northeast_Mean_2020 <- mean(Northeast$Circumf_2020_cm)
+Southwest_Mean_2005 <- mean(Southwest$Circumf_2005_cm)
+Southwest_Mean_2020 <- mean(Southwest$Circumf_2020_cm)
+
+Northeast_SD_2005 <- sd(Northeast$Circumf_2005_cm)
+Northeast_SD_2020 <- sd(Northeast$Circumf_2020_cm)
+Southwest_SD_2005 <- sd(Southwest$Circumf_2005_cm)
+Southwest_SD_2020 <- sd(Southwest$Circumf_2020_cm)
+##Make a box plot of tree circumference at the start and end of the study at both sites.
+boxplot(Northeast$Circumf_2005_cm, Northeast$Circumf_2020_cm,
+        ylab="Circumference",
+        main="Circumference in Northeast in cm",
+        names = c("2005","2020"))
+
+boxplot(Southwest$Circumf_2005_cm, Southwest$Circumf_2020_cm,
+        ylab="Circumference",
+        main="Circumference in Southwest in cm",
+        names = c("2005","2020"))
+
+##Calculate the mean growth over the last 10 years at each site.
+Northeast_difference <- Northeast$Circumf_2020_cm - Northeast$Circumf_2005_cm
+Northeast_mean_difference <- mean(Northeast_difference)
+
+Southwest_difference <- Southwest$Circumf_2020_cm - Southwest$Circumf_2005_cm
+Southwest_mean_difference <- mean(Southwest_difference)
+print(Southwest_mean_difference) 
+print(Northeast_mean_difference)
+##Use the t.test to estimate the p-value that the 10 year growth is different at the two sites.
+t_test_result <- t.test(Northeast_difference, Southwest_difference)
+p_value <- t_test_result$p.value
+print(p_value)
+```
+
